@@ -4,6 +4,8 @@
 #include "logger.h"
 #include "application.h"
 
+// комментарий на руссоко языке
+
 int main( int argc, char * argv[] )
 {
     Application app( argc, argv );

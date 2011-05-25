@@ -2,6 +2,7 @@
 #define APPLICATION_H
 
 #include <QApplication>
+#include "mainwindow.h"
 
 class Application : public QApplication
 {
@@ -14,6 +15,9 @@ public:
 signals:
 
 public slots:
+
+private:
+    MainWindow window;
 
 };
 

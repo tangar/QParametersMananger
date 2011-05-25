@@ -2,7 +2,8 @@
 
 Application::Application( int & argc, char ** argv )
     :QApplication( argc, argv )
-{
+{    
+    window.show();
 }
 
 bool Application::loadSettings()

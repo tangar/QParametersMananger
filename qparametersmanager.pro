@@ -36,13 +36,15 @@ else {
 #    qparametersmanager_ru.ts
 
 SOURCES += \
-    src\main.cpp \
-    src\logger.cpp \
-    src\application.cpp
+    src/main.cpp \
+    src/logger.cpp \
+    src/application.cpp \
+    src/mainwindow.cpp
 
 HEADERS += \
     src/logger.h \
-    src/application.h
+    src/application.h \
+    src/mainwindow.h
 
 #win32:RC_FILE = qparametersmanager.rc
 
@@ -51,7 +53,11 @@ OTHER_FILES += \
     Changelog.txt \
     config.ini \
     CODING_STYLE_ru.txt \
-    CODING_STYLE_en.txt
+    CODING_STYLE_en.txt \
+    qparametersmanager.rc
 
 RESOURCES += \
     resources.qrc
+
+FORMS += \
+    src/mainwindow.ui
