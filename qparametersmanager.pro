@@ -44,7 +44,9 @@ SOURCES += \
 HEADERS += \
     src/logger.h \
     src/application.h \
-    src/mainwindow.h
+    src/mainwindow.h \
+    src/parameteritem.h \
+    src/property.h
 
 #win32:RC_FILE = qparametersmanager.rc
 
@@ -60,4 +62,4 @@ RESOURCES += \
     resources.qrc
 
 FORMS += \
-    src/mainwindow.ui
+    ui/mainwindow.ui
