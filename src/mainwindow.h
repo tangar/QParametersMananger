@@ -15,6 +15,10 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+public slots:
+signals:
+    void descriptinFileRequest( void );
+
 private:
     Ui::MainWindow *ui;
 };

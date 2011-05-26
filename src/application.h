@@ -15,9 +15,11 @@ public:
 signals:
 
 public slots:
+    void loadDescriptionFile( void );
 
 private:
-    MainWindow window;
+    MainWindow * mainWindow;
+    void createConnections( void );
 
 };
 
