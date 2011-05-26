@@ -39,14 +39,16 @@ SOURCES += \
     src/main.cpp \
     src/logger.cpp \
     src/application.cpp \
-    src/mainwindow.cpp
+    src/mainwindow.cpp \
+    src/inputparser.cpp
 
 HEADERS += \
     src/logger.h \
     src/application.h \
     src/mainwindow.h \
     src/parameteritem.h \
-    src/property.h
+    src/property.h \
+    src/inputparser.h
 
 #win32:RC_FILE = qparametersmanager.rc
 
