@@ -15,7 +15,7 @@ public:
     PROPERTY( int, highLimit, setHighLimit, getHighLimit );
     PROPERTY( int, defValue, setDefValue, getDefValue );
     PROPERTY( int, resolution, setResolution, getResolution );
-    PROPERTY( int, isNa, setIsNa, getIsNa );
+    PROPERTY( bool, isNa, setIsNa, getIsNa );
     PROPERTY( QString, comment, setComment, getComment );
     PROPERTY( QString, name, setName, getName );
     PROPERTY( QString, type, setType, getType );
@@ -34,7 +34,7 @@ public:
     void print()
     {
         LOG_DEBUG( QObject::tr( "ParameterItem" ),
-                   QObject::tr( "Parameter #%1:\t%2\n\tmin:%3\tmax:%4\tdefault:%5\tres:%6\t%7\n\tBlocked:%8" ).arg( getNumber() ).arg( getComment() ).arg( getLowLimit() ).arg( getHighLimit() ).arg( getDefValue() ).arg( getResolution() ).arg( getType() ).arg( getIsNa() ) );
+                   QObject::tr( "Print parameter #%1:\n%2\nmin:%3\tmax:%4\tdefault:%5\t\tres:%6\t%7\tBlocked:%8" ).arg( getNumber() ).arg( getComment() ).arg( getLowLimit() ).arg( getHighLimit() ).arg( getDefValue() ).arg( getResolution() ).arg( getType() ).arg( getIsNa() ) );
     }
 };
 

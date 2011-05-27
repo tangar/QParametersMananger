@@ -2,7 +2,10 @@
 #define APPLICATION_H
 
 #include <QApplication>
+#include <QList>
+#include "parameteritem.h"
 #include "mainwindow.h"
+
 
 class Application : public QApplication
 {
@@ -12,10 +15,13 @@ public:
     bool loadSettings();
     bool configure();
 
+    QList <ParameterItem> parameterItemList;
+
 signals:
 
 public slots:
     void loadDescriptionFile( void );
+    void onQuitRequest( void );
 
 private:
     MainWindow * mainWindow;

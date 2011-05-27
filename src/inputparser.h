@@ -11,8 +11,9 @@ class InputParser : public QObject
     Q_OBJECT
 public:
     explicit InputParser( QObject * parent = 0 );
-    static QList <ParameterItem> readItems( QString source );
+    static bool readItems( QString source, QList<ParameterItem> * parameterList );
     static bool parseLine( QString line, ParameterItem * item);
+    static int getFractionalLength( double value );
 
 signals:
 

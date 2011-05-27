@@ -16,8 +16,10 @@ public:
     ~MainWindow();
 
 public slots:
+
 signals:
     void descriptinFileRequest( void );
+    void quitRequest( void );
 
 private:
     Ui::MainWindow *ui;

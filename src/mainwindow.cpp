@@ -8,7 +8,15 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    connect( ui->pushButton, SIGNAL( pressed() ), this, SIGNAL( descriptinFileRequest() ) ) ;
+
+    ui->actionImport->setShortcut( QKeySequence::Open );
+
+    //ui->actionQuit_4->setIcon( QIcon( ":/") );
+
+
+    connect( ui->actionImport, SIGNAL( triggered() ), this, SIGNAL( descriptinFileRequest() ) ) ;
+    connect( ui->actionQuit, SIGNAL( triggered() ), this, SIGNAL( quitRequest() ) );
+    connect( ui->actionAbout_Qt, SIGNAL( triggered() ), this, SLOT ( QApplication::aboutQt() ) );
 }
 
 MainWindow::~MainWindow()

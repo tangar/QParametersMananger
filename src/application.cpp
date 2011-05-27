@@ -43,11 +43,19 @@ void Application::loadDescriptionFile(void)
     {
         fileName = fileDialog.selectedFiles().first();
         LOG_DEBUG( tr( "Application" ), tr( "Selected file: %1" ).arg( fileName ) );
-        InputParser::readItems( fileName );
+        QList<ParameterItem> tempList;
+        if ( InputParser::readItems( fileName, &tempList ) )
+            parameterItemList = tempList;
     }
 }
 
 void Application::createConnections(void)
 {
     connect( mainWindow, SIGNAL( descriptinFileRequest() ), this, SLOT( loadDescriptionFile() ) );
+    connect( mainWindow, SIGNAL( quitRequest() ), this, SLOT( onQuitRequest() ) );
+}
+
+void Application::onQuitRequest(void)
+{
+    qApp->quit();
 }

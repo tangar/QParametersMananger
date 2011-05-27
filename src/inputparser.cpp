@@ -5,6 +5,21 @@
 #include <QStringList>
 #include <math.h>
 
+
+// line structure:
+// [ 0 ]    [ 1 ]   [ 2 ]       [ 3 ]       [ 4 ]   [ 5 ]       [ 6 ]
+// NUMBER;  NAME;   MIN;        MAX;        DEF;    ALARM_CODE  TYPE
+// int      QString int         int         int     QString     QString
+// number   comment lowLimit    HighLimit   defVlue code        V/A/s/m/degC
+
+#define MIN_COLUMN_COUNT    7
+#define DEF_NUMBER          0
+#define DEF_COMMENT         1
+#define DEF_TYPE            6
+#define DEF_LOW             2
+#define DEF_HIGH            3
+#define DEF_DEF             4
+
 #define DEF_SEPARATOR ";"
 
 InputParser::InputParser( QObject * parent ) :
@@ -12,9 +27,8 @@ InputParser::InputParser( QObject * parent ) :
 {
 }
 
-QList<ParameterItem> InputParser::readItems( QString source )
+bool InputParser::readItems( QString source, QList<ParameterItem> * parameterList )
 {
-    QList<ParameterItem> parameterList;        
     ParameterItem * parameterItem;
     char buf[1024];
     qint64 ret;
@@ -23,66 +37,78 @@ QList<ParameterItem> InputParser::readItems( QString source )
     if( !file.exists() )
     {
         LOG_DEBUG( tr( "Input parser" ), tr( "input file doesn't exist" ) );
-        goto finish;
+        return false;
     }
 
     if( !file.open( QIODevice::ReadOnly ) )
     {
         LOG_DEBUG( tr( "Input parser" ), tr( "can not open input file" ) );
-        goto finish;
+        return false;
     }
 
-    ret = file.readLine( buf, sizeof( buf ) );
-    while ( ret > 0 )
+    do
     {
-        QString line = QString( buf );
-        LOG_DEBUG( tr( "Input parser" ), tr( "string from file: %1" ).arg(line) );
-
-        parameterItem = new  ParameterItem();
-        if ( parseLine( line, parameterItem ) )
-            parameterList.append( * parameterItem );
-
         ret = file.readLine( buf, sizeof( buf ) );
-    }
+        QString line = QString( buf );
+        if ( ret > 0 )
+        {
+            LOG_DEBUG( tr( "Input parser" ), tr( "string from file: %1" ).arg(line) );
 
-    finish:
-        return parameterList;
+            parameterItem = new  ParameterItem();
+            if ( parseLine( line, parameterItem ) )
+                parameterList->append( * parameterItem );
+        }
+    } while ( ret > 0 );
+
+    return true;
+}
+
+int InputParser::getFractionalLength( double value )
+{
+    int retValue = 0;
+    double fraction;
+
+    value = ( value < 0 ) ? ( value * -1 ) : value;
+
+    do
+    {
+        fraction = value - ( int ) value;
+        if ( fraction != 0 )
+        {
+            retValue += 1;
+            value *= 10;
+        }
+    }  while ( fraction != 0 );
+
+    return retValue;
 }
 
 bool InputParser::parseLine(QString line, ParameterItem *item)
 {    
     QStringList fields;
-    qreal tempReal1, tempReal2, tempReal3;
+    int resolution;
+    double tempReal1, tempReal2, tempReal3;
     bool tempRet1, tempRet2, tempRet3;
-    int tempInt;
-    bool tempRet;
+    int temp;
     QString tempString;
+    QString defString;
 
-    // line structure:
-    // [ 0 ]    [ 1 ]   [ 2 ]       [ 3 ]       [ 4 ]   [ 5 ]       [ 6 ]        [ 7 ]      [ 8 ]
-    // NUMBER;  NAME;   MIN;        MAX;        DEF;    ALARM_CODE  TYPE         BLOCKED    resolution;
-    // int      QString int         int         int     QString     QString      bool       int
-    // number   comment lowLimit    HighLimit   defVlue code        V/A/s/m/degC isNA       resolution
+    resolution = 0;
 
-#define COLUMN_COUNT    9
-#define DEF_COMMENT     1
-#define DEF_TYPE        6
-#define DEF_LOW         2
-#define DEF_HIGH        3
-#define DEF_DEF         4
-#define DEF_RES         8
-#define DEF_BLOCKED     7
+    // fix unised '\n'
+    temp = line.indexOf( "\n" );
+    if ( temp != -1 ) line.remove( temp, 1 );
 
     fields = line.split( DEF_SEPARATOR, QString::KeepEmptyParts, Qt::CaseInsensitive );
-    if ( fields.length() != COLUMN_COUNT )
+    if ( fields.length() < MIN_COLUMN_COUNT )
     {
         LOG_DEBUG( tr( "Input parser" ), tr( "Incorrect line format" ) );
         return false;
     }
 
     // set number of parameter
-    tempInt = fields.at( 0 ).toInt( &tempRet );
-    if ( tempRet ) item->setNumber( tempInt );
+    temp = fields.at( DEF_NUMBER ).toInt( &tempRet1 );
+    if ( tempRet1 ) item->setNumber( temp );
     else return false;
 
     // set comment and type for parameter
@@ -92,13 +118,13 @@ bool InputParser::parseLine(QString line, ParameterItem *item)
     item->setType( tempString );
 
     // get diapasons
-    tempReal1 = fields.at( DEF_LOW  ).toInt( &tempRet1 );
-    tempReal2 = fields.at( DEF_HIGH ).toInt( &tempRet2 );
-    tempReal3 = fields.at( DEF_DEF  ).toInt( &tempRet3 );
-    tempInt   = fields.at( DEF_RES  ).toInt( &tempRet );
+    tempReal1 = fields.at( DEF_LOW  ).toDouble( &tempRet1 );
+    tempReal2 = fields.at( DEF_HIGH ).toDouble( &tempRet2 );
+    tempReal3 = fields.at( DEF_DEF  ).toDouble( &tempRet3 );
+    defString = fields.at( DEF_DEF );
 
     // in case of incorrect numbers - write zeroes and mark parameter as "unprocessed"
-    if ( !( tempRet1 && tempRet2 && tempRet3 && tempRet ) )
+    if ( !( tempRet1 && tempRet2 ) )
     {
         LOG_DEBUG( tr( "Input parser" ), tr( "Incorrect line fields. All set to zeroes" ) );
         item->setLowLimit( 0 );
@@ -109,20 +135,53 @@ bool InputParser::parseLine(QString line, ParameterItem *item)
     }
     else
     {
-        item->setResolution( tempInt );
-        int resolution = item->getResolution();
-        int grade = pow( 10, resolution );
-        item->setLowLimit ( (int)( tempReal1 * grade ) );
-        item->setHighLimit( (int)( tempReal2 * grade ) );
-        item->setDefValue ( (int)( tempReal3 * grade ) );
+        // determine "can be blocked" flag
+        // clause: '*' in default value OR 'мнап'
+        temp = defString.indexOf("*");
+        int letterIndex = defString.indexOf( "м", 0, Qt::CaseInsensitive );
+        if ( ( temp != -1 ) || ( letterIndex != -1 ) )
+        {
+            if ( temp != -1 )
+            {
+                defString.remove( temp, 1 );
+                tempReal3 = defString.toInt( &tempRet3 );
+            }
+            item->setIsNa( true );
+        }
+        else
+        {
+            item->setIsNa( false );
+        }
+
+        // determine length of fractional part
+        if ( tempRet1 )
+        {
+            temp = getFractionalLength( tempReal1 );
+            resolution = ( resolution < temp ) ? temp : resolution;
+        }
+        if ( tempRet2 )
+        {
+            temp = getFractionalLength( tempReal2 );
+            resolution = ( resolution < temp ) ? temp : resolution;
+        }
+        if ( tempRet3 )
+        {
+            temp = getFractionalLength( tempReal3 );
+            resolution = ( resolution < temp ) ? temp : resolution;
+        }
+        item->setResolution( resolution );
+
+        // write values modified to integer form
+        if ( tempRet1 )
+            item->setLowLimit( (int)( tempReal1 * pow( 10, resolution ) ) );
+        else item->setLowLimit( 0 );
+        if ( tempRet2 )
+            item->setHighLimit( (int)( tempReal2 * pow( 10, resolution ) ) );
+        else item->setHighLimit( 0 );
+        if ( tempRet3 )
+            item->setDefValue( (int)( tempReal3 * pow( 10, resolution ) ) );
+        else item->setDefValue( 0 );
     }
-
-    // set "can be blocked" field
-    if ( fields.at( DEF_BLOCKED ) == "+" )
-        item->setIsNa( true );
-    else
-        item->setIsNa( false );
-
 
     item->print();
 

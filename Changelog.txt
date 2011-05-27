@@ -1,3 +1,6 @@
 TODO
 
 LOG
+
+0.1
+added parser and basic form design
